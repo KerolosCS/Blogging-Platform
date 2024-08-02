@@ -77,7 +77,7 @@ namespace testTask.Controllers
                 Email = user.Email,
                 Comments = user.Comments,
                 Followers = user.Followers,
-                Following = user.Following,
+                //Following = user.Following,
 
                 Posts = user.Posts,
             };

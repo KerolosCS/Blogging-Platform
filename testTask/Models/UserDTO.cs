@@ -11,6 +11,6 @@
         public ICollection<Post>? Posts { get; set; }
         public ICollection<Comment>? Comments { get; set; }
         public ICollection<Follower>? Followers { get; set; }
-        public ICollection<Follower>? Following { get; set; }
+        //public ICollection<Follower>? Following { get; set; }
     }
 }
