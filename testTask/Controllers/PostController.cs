@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Hosting;
 using testTask.Data;
 using testTask.Models;
 
@@ -18,14 +19,37 @@ namespace testTask.Controllers
             }
 
             [HttpGet]
-            public ActionResult<IEnumerable<Post>> GetPosts()
+            public ActionResult<IEnumerable<PostDTO>> GetPosts()
             {
+
+                
                 var posts = _context.Posts.Include(p => p.Comments);
-                return Ok (posts);
+
+            List<PostDTO> postDTOs = posts.Select(p => new PostDTO
+            {
+                Id = p.Id,
+                AuthorId = p.AuthorId,
+                authorName = p.Author.Username,
+                Comments = p.Comments.Select(c => new CommentDTO
+                {
+                    Id = c.Id,
+                    PostId = c.PostId,
+                    CommentContent = c.Text,
+                    UserId = c.UserId,
+                }).ToList(),
+                Content=p.Content,
+                Title=p.Title,
+                CreationDate = p.CreationDate,
+
+
+            }).ToList();
+
+
+            return Ok (postDTOs);
             }
 
             [HttpGet("{id}")]
-            public ActionResult<Post> GetPost(int id)
+            public ActionResult<PostDTO> GetPost(int id)
             {
                 var post = _context.Posts
                     .Include(p => p.Comments)
@@ -36,16 +60,43 @@ namespace testTask.Controllers
                     return NotFound();
                 }
 
-                return Ok(post);
+            PostDTO postDTO = new PostDTO() {
+
+                Id = post.Id,
+                authorName = post.Author.Username,
+                Comments = post.Comments.Select(c => new CommentDTO
+                {
+                    Id = c.Id,
+                    PostId = c.PostId,
+                    CommentContent = c.Text,
+                    UserId = c.UserId,
+                }).ToList(),
+                Content = post.Content,
+                Title = post.Title,
+                CreationDate = post.CreationDate,
+            };
+
+
+                return Ok(postDTO);
             }
 
             [HttpPost]
-            public ActionResult<Post> CreatePost(Post post)
+            public   ActionResult<PostCreateDTO> CreatePost(PostCreateDTO post)
             {
-                _context.Posts.Add(post);
-                _context.SaveChanges();
+            Post p = new Post() {
+            
+             Id = post.Id,
+             AuthorId = post.AuthorId,
+             Title = post.Title,
+             Content = post.Content,
+             CreationDate= post.CreationDate,
+            
+            
+            };
+                 _context.Posts.Add(p);
+                 _context.SaveChanges();
 
-                return CreatedAtAction(nameof(GetPost), new { id = post.Id }, post);
+                return  CreatedAtAction(nameof(GetPost), new { id = post.Id }, post);
             }
 
             [HttpPut("{id}")]
@@ -63,7 +114,7 @@ namespace testTask.Controllers
             }
 
             [HttpDelete("{id}")]
-            public IActionResult DeletePost(int id)
+            public async Task<IActionResult> DeletePost(int id)
             {
                 var post = _context.Posts.Find(id);
                 if (post == null)
@@ -72,7 +123,7 @@ namespace testTask.Controllers
                 }
 
                 _context.Posts.Remove(post);
-                _context.SaveChanges();
+               await _context.SaveChangesAsync();
 
                 return NoContent();
             }

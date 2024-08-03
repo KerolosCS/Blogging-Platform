@@ -12,9 +12,7 @@ namespace testTask.Controllers
 
         private readonly ILogger<UsersController> _logger;
 
-        //public VillaAPIController(ILogger<VillaAPIController> logger)
-        //{
-        //}
+        
         private readonly ApplicationDbContext _context;
 
         public UsersController(ApplicationDbContext db , ILogger<UsersController> logger)
@@ -78,7 +76,7 @@ namespace testTask.Controllers
             {
                 Id = co.Id,
                 PostId = co.PostId,
-                Text = co.Text,
+                CommentContent = co.Text,
                 UserId = co.UserId,
             }).ToList();
 
@@ -99,6 +97,8 @@ namespace testTask.Controllers
             List<PostDTO> postDTOs = user.Posts.Select(post => new PostDTO
             {
                 Id = post.Id,
+                
+                authorName = user.Username,
                 Title = post.Title,
                 Content = post.Content,
                 CreationDate = post.CreationDate,
@@ -106,7 +106,7 @@ namespace testTask.Controllers
                 {
                     Id = c.Id,
                     PostId = c.PostId,
-                    Text = c.Text,
+                    CommentContent = c.Text,
                     UserId = c.UserId,
                 }).ToList(),
             }).ToList();
