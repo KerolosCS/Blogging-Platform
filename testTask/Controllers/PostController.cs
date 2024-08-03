@@ -23,7 +23,7 @@ namespace testTask.Controllers
             {
 
                 
-                var posts = _context.Posts.Include(p => p.Comments);
+             var posts = _context.Posts.Include(p => p.Comments).Include(p => p.Author);
 
             List<PostDTO> postDTOs = posts.Select(p => new PostDTO
             {
@@ -49,10 +49,10 @@ namespace testTask.Controllers
             }
 
             [HttpGet("{id}")]
-            public ActionResult<PostDTO> GetPost(int id)
+            public ActionResult<Post> GetPost(int id)
             {
                 var post = _context.Posts
-                    .Include(p => p.Comments)
+                    .Include(p => p.Comments).Include(P => P.Author)
                     .SingleOrDefault(p => p.Id == id);
 
                 if (post == null)
@@ -60,28 +60,36 @@ namespace testTask.Controllers
                     return NotFound();
                 }
 
-            PostDTO postDTO = new PostDTO() {
-
-                Id = post.Id,
-                authorName = post.Author.Username,
-                Comments = post.Comments.Select(c => new CommentDTO
+            List<CommentDTO> commentsDTO = null;
+            if (post.Comments != null)
+            {
+                commentsDTO = post.Comments.Select(c => new CommentDTO
                 {
                     Id = c.Id,
                     PostId = c.PostId,
                     CommentContent = c.Text,
                     UserId = c.UserId,
-                }).ToList(),
+                }).ToList();
+            }
+
+            PostDTO postDTO = new PostDTO()
+            {
+
+                Id = post.Id,
+                authorName = post.Author.Username,
+                AuthorId = post.Author.Id,
+                Comments = commentsDTO,
                 Content = post.Content,
                 Title = post.Title,
                 CreationDate = post.CreationDate,
             };
 
 
-                return Ok(postDTO);
+            return Ok(postDTO);
             }
 
             [HttpPost]
-            public   ActionResult<PostCreateDTO> CreatePost(PostCreateDTO post)
+            public   async Task<ActionResult<PostCreateDTO>> CreatePost(PostCreateDTO post)
             {
             Post p = new Post() {
             
@@ -94,9 +102,9 @@ namespace testTask.Controllers
             
             };
                  _context.Posts.Add(p);
-                 _context.SaveChanges();
+              await  _context.SaveChangesAsync();
 
-                return  CreatedAtAction(nameof(GetPost), new { id = post.Id }, post);
+                return  CreatedAtAction(nameof(GetPost), new { id = p.Id }, post);
             }
 
             [HttpPut("{id}")]
