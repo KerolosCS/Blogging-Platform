@@ -41,6 +41,8 @@ namespace testTask.Data
 
             // User - Follower relationship
 
+
+
             modelBuilder.Entity<Follower>()
                 .HasOne(f => f.FollowerUser)
                 .WithMany(u => u.Followers)

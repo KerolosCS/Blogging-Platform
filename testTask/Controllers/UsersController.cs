@@ -9,12 +9,20 @@ namespace testTask.Controllers
     [ApiController]
     public class UsersController : ControllerBase
     {
+
+        private readonly ILogger<UsersController> _logger;
+
+        //public VillaAPIController(ILogger<VillaAPIController> logger)
+        //{
+        //}
         private readonly ApplicationDbContext _context;
 
-        public UsersController(ApplicationDbContext db)
+        public UsersController(ApplicationDbContext db , ILogger<UsersController> logger)
         {
+            _logger = logger;
             _context = db;
         }
+
 
         [HttpPost("create")]
         public async Task<IActionResult> CreateUser(UserCreate userCreate)
@@ -37,51 +45,84 @@ namespace testTask.Controllers
         }
 
         [HttpGet("GetUser/{id}")] 
-        public   ActionResult<UserDTO>GetUser(int id) 
+        public  async Task<ActionResult<UserDTO>>GetUser(int id) 
         {
 
-            User? user =  _context.Users.Include(u => u.Posts)
-                                         .Include(p => p.Comments)
-                                         .Include(u => u.Following)
-                                         .Include(u => u.Followers)
-                                         
-                                         .SingleOrDefault(u => u.Id == id);
+            var user = await _context.Users
+                            .Include(u => u.Posts)
+                            .ThenInclude(p => p.Comments)
+                            .Include(u => u.Comments)
+                             .Include(u => u.Followers)
+                            .Include(u => u.Following)
+                           
+                            .SingleOrDefaultAsync(u => u.Id == id);
+
+
+
 
             if (user == null)
             {
                 return NotFound();
             }
+            _logger.LogInformation($"My Log ---------------------------- >>> {user.Followers.ToList().Count()}");
+            if (user.Followers.ToList().Count()>0)
+            {
+            _logger.LogInformation($"My Log ---------------------------- user.Followers.ToList()[0].FollowerId >>> {user.Followers.ToList()[0].FollowerId}");
+            _logger.LogInformation($"My Log ---------------------------- user.Followers.ToList()[0].FollowerUser >>> {user.Followers.ToList()[0].FollowerUser}");
+            _logger.LogInformation($"My Log ---------------------------- user.Followers.ToList()[0].FollowedId >>> {user.Followers.ToList()[0].FollowedId}");
+            _logger.LogInformation($"My Log ---------------------------- user.Followers.ToList()[0].FollowedUser >>> {user.Followers.ToList()[0].FollowedUser}");
 
-           
-            // List<CommentDTO> cemmentDTOs = user.Comments.Select(co => new CommentDTO
-            //{
-            //     Id = co.Id,
-            //     PostId = co.Id,
-            //     Text = co.Text,
-            //     UserId = co.UserId,
+            }
+            _logger.LogInformation($"My Log ---------------------------- >>> {user.Following.ToList().Count()}");
+            List<CommentDTO> commentDTOs = user.Comments.Select(co => new CommentDTO
+            {
+                Id = co.Id,
+                PostId = co.PostId,
+                Text = co.Text,
+                UserId = co.UserId,
+            }).ToList();
 
-            //}).ToList();
-            //List<PostDTO> postDTOs = user.Posts.Select(post => new PostDTO
-            //{
-            //    Id = post.Id,
-            //    Title = post.Title,
-            //    Content = post.Content,
-            //    CreationDate = post.CreationDate,
-            //    Comments = cemmentDTOs,  
-            //}).ToList();
+            List<FollowerDTO> followersDTOs = user.Followers.Select(f => new FollowerDTO
+            {
+                Id = f.Id,
+                FollowedId = f.FollowedId,
+                FollowerId = f.FollowerId,
+            }).ToList();
+
+            List<FollowerDTO> followingDTOs = user.Following.Select(f => new FollowerDTO
+            {
+                Id = f.Id,
+                FollowedId = f.FollowedId,
+                FollowerId = f.FollowerId,
+            }).ToList();
+
+            List<PostDTO> postDTOs = user.Posts.Select(post => new PostDTO
+            {
+                Id = post.Id,
+                Title = post.Title,
+                Content = post.Content,
+                CreationDate = post.CreationDate,
+                Comments = post.Comments.Select(c => new CommentDTO
+                {
+                    Id = c.Id,
+                    PostId = c.PostId,
+                    Text = c.Text,
+                    UserId = c.UserId,
+                }).ToList(),
+            }).ToList();
 
             UserDTO userDTO = new UserDTO()
             {
                 Id = user.Id,
                 Username = user.Username,
                 Email = user.Email,
-                Comments = user.Comments,
-                Followers = user.Followers,
-                //Following = user.Following,
-
-                Posts = user.Posts,
+                Comments = commentDTOs,
+                Following = followingDTOs.Where(f => f.FollowerId == user.Id).ToList(),
+                Followers = followersDTOs.Where(f => f.FollowedId == user.Id).ToList(),
+                Posts = postDTOs,
             };
-            return  Ok(userDTO);
+
+            return Ok(userDTO);
         }
 
         [HttpPut("Update/{id}")]
