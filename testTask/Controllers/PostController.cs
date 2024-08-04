@@ -18,7 +18,7 @@ namespace testTask.Controllers
                 _context = db;
             }
 
-            [HttpGet]
+            [HttpGet("GetPosts")]
             public ActionResult<IEnumerable<PostDTO>> GetPosts()
             {
 
@@ -48,7 +48,7 @@ namespace testTask.Controllers
             return Ok (postDTOs);
             }
 
-            [HttpGet("{id}")]
+            [HttpGet("GetPost/{id}")]
             public ActionResult<Post> GetPost(int id)
             {
                 var post = _context.Posts
@@ -88,7 +88,7 @@ namespace testTask.Controllers
             return Ok(postDTO);
             }
 
-            [HttpPost]
+            [HttpPost("Create")]
             public   async Task<ActionResult<PostCreateDTO>> CreatePost(PostCreateDTO post)
             {
             Post p = new Post() {
@@ -107,7 +107,7 @@ namespace testTask.Controllers
                 return  CreatedAtAction(nameof(GetPost), new { id = p.Id }, post);
             }
 
-            [HttpPut("{id}")]
+            [HttpPut("Update/{id}")]
             public async Task<IActionResult> UpdatePost(int id, PostCreateDTO postCreateDTO)
             {
             var postUpdate = _context.Posts.AsNoTracking()
@@ -136,7 +136,7 @@ namespace testTask.Controllers
                 return NoContent();
             }
 
-            [HttpDelete("{id}")]
+            [HttpDelete("Delete/{id}")]
             public async Task<IActionResult> DeletePost(int id)
             {
                 var post = _context.Posts.Find(id);

@@ -50,9 +50,8 @@ namespace testTask.Controllers
                             .Include(u => u.Posts)
                             .ThenInclude(p => p.Comments)
                             .Include(u => u.Comments)
-                             .Include(u => u.Followers)
+                            .Include(u => u.Followers)
                             .Include(u => u.Following)
-                           
                             .SingleOrDefaultAsync(u => u.Id == id);
 
 
@@ -99,6 +98,7 @@ namespace testTask.Controllers
                 Id = post.Id,
                 
                 authorName = user.Username,
+                AuthorId = user.Id,
                 Title = post.Title,
                 Content = post.Content,
                 CreationDate = post.CreationDate,
@@ -126,17 +126,29 @@ namespace testTask.Controllers
         }
 
         [HttpPut("Update/{id}")]
-        public  IActionResult UpdateUser(int id, User user)
+        public async Task<IActionResult> UpdateUser(int id, UserCreate userUpdate)
         {
-            if (id != user.Id)
+            var user =  await _context.Users
+                          .AsNoTracking()
+                          .SingleOrDefaultAsync(u => u.Id == id);
+
+            if (id != user?.Id)
             {
                 return BadRequest();
             }
 
-            _context.Entry(user).State = EntityState.Modified;
+            User userUpdated = new User()
+            {
+              Username = userUpdate.Username,
+              Email = userUpdate.Email,
+              Id = user.Id,
+              Password = userUpdate.Password,   
+            };
+
+             _context.Entry(userUpdated).State = EntityState.Modified;
             try
             {
-                 _context.SaveChangesAsync();
+                await _context.SaveChangesAsync();
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -149,7 +161,7 @@ namespace testTask.Controllers
                     throw ;
                 }
             }
-            return NoContent();
+            return Ok("Updated");
         }
 
         //[HttpDelete("{id}")]
