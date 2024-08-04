@@ -16,57 +16,97 @@ namespace testTask.Controllers
             _context = db;
         }
 
-        [HttpGet]
-        public ActionResult<IEnumerable<Comment>> GetComments()
+        [HttpGet("GetComments")]
+        public ActionResult<IEnumerable<CommentDTO>> GetComments()
         {
             var comments = _context.Comments
                 .Include(c => c.User)
                 .Include(c => c.Post)
                 ;
-            return Ok(comments);
+            List<CommentDTO> commentDTOs = comments.Select(c => new CommentDTO { 
+            Id = c.Id,
+            CommentContent = c.Text,
+            PostId = c.PostId,
+            UserId  = c.UserId,
+            
+            }).ToList();
+
+
+
+            return Ok(commentDTOs);
         }
 
-        [HttpGet("{id}")]
-        public ActionResult<Comment> GetComment(int id)
+        [HttpGet("GetComment/{id}")]
+        public ActionResult<CommentDTO> GetComment(int id)
         {
             var comment = _context.Comments
                 .Include(c => c.User)
                 .Include(c => c.Post)
                 .SingleOrDefault(c => c.Id == id);
 
+            CommentDTO commentDTO = new CommentDTO()
+            {
+                UserId = id,
+                CommentContent = comment.Text,
+                PostId = comment.PostId,
+                Id = comment.Id,
+            };
+
             if (comment == null)
             {
                 return NotFound();
             }
 
-            return Ok(comment);
+            return Ok(commentDTO);
         }
 
-        [HttpPost]
-        public ActionResult<Comment> CreateComment(Comment comment)
+        [HttpPost("Create")]
+        public async Task< ActionResult<Comment>> CreateComment(CommentDTO commentDto)
+
+
         {
+            Comment comment =  new Comment()
+            {
+                Id = commentDto.Id,
+                PostId= commentDto.PostId,
+                UserId= commentDto.UserId,
+                Text = commentDto.CommentContent,
+                CreationDate = DateTime.Now,
+
+
+            };
             _context.Comments.Add(comment);
-            _context.SaveChanges();
+           await _context.SaveChangesAsync();
 
             return CreatedAtAction(nameof(GetComment), new { id = comment.Id }, comment);
         }
 
-        [HttpPut("{id}")]
-        public IActionResult UpdateComment(int id, Comment comment)
+        [HttpPut("Update/{id}")]
+        public async Task<IActionResult> UpdateComment(int id, CommentDTO commentDto)
         {
-            if (id != comment.Id)
+            if (id != commentDto.Id)
             {
                 return BadRequest();
             }
+            Comment comment = new Comment()
+            {
+                Id = commentDto.Id,
+                PostId = commentDto.PostId,
+                UserId = commentDto.UserId,
+                Text = commentDto.CommentContent,
+                CreationDate = DateTime.Now,
+
+            };
+
 
             _context.Entry(comment).State = EntityState.Modified;
-            _context.SaveChanges();
+           await _context.SaveChangesAsync();
 
             return NoContent();
         }
 
-        [HttpDelete("{id}")]
-        public IActionResult DeleteComment(int id)
+        [HttpDelete("Delete/{id}")]
+        public async Task<IActionResult> DeleteComment(int id)
         {
             var comment = _context.Comments.Find(id);
             if (comment == null)
@@ -75,7 +115,7 @@ namespace testTask.Controllers
             }
 
             _context.Comments.Remove(comment);
-            _context.SaveChanges();
+         await   _context.SaveChangesAsync();
 
             return NoContent();
         }

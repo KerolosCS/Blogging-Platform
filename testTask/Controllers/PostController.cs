@@ -108,15 +108,30 @@ namespace testTask.Controllers
             }
 
             [HttpPut("{id}")]
-            public IActionResult UpdatePost(int id, Post post)
+            public async Task<IActionResult> UpdatePost(int id, PostCreateDTO postCreateDTO)
             {
-                if (id != post.Id)
+            var postUpdate = _context.Posts.AsNoTracking()
+                    .Include(p => p.Comments).Include(P => P.Author)
+                    .SingleOrDefault(p => p.Id == id);
+            if (id != postCreateDTO.Id)
                 {
                     return BadRequest();
                 }
 
+            Post post = new Post() { 
+            
+                Id = postUpdate.Id,
+                AuthorId = postUpdate.AuthorId,
+                Title = postCreateDTO.Title,
+                Author = postUpdate.Author,
+                Content = postCreateDTO.Content,
+                CreationDate = postUpdate.CreationDate,
+                Comments = postUpdate.Comments,
+                
+            
+            };
                 _context.Entry(post).State = EntityState.Modified;
-                _context.SaveChanges();
+               await _context.SaveChangesAsync();
 
                 return NoContent();
             }
