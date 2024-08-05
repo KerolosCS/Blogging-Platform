@@ -1,4 +1,4 @@
-﻿namespace testTask.Models
+﻿namespace testTask.DTOs
 {
     public class UserDTO
     {

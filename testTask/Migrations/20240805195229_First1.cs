@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace testTask.Migrations
 {
     /// <inheritdoc />
-    public partial class _1 : Migration
+    public partial class First1 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -35,7 +35,7 @@ namespace testTask.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Followers", x => x.FollowerId);
+                    table.PrimaryKey("PK_Followers", x => new { x.FollowedId, x.FollowerId });
                     table.ForeignKey(
                         name: "FK_Followers_Users_FollowedId",
                         column: x => x.FollowedId,
@@ -111,9 +111,9 @@ namespace testTask.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Followers_FollowedId",
+                name: "IX_Followers_FollowerId",
                 table: "Followers",
-                column: "FollowedId");
+                column: "FollowerId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Posts_AuthorId",

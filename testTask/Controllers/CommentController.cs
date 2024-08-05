@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using testTask.Data;
+using testTask.DTOs;
 using testTask.Models;
 
 namespace testTask.Controllers

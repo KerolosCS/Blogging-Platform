@@ -2,12 +2,13 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
 using testTask.Data;
+using testTask.DTOs;
 using testTask.Models;
 
 namespace testTask.Controllers
 {
-   
-        [ApiController]
+
+    [ApiController]
         [Route("api/[controller]")]
         public class PostController : ControllerBase
         {
@@ -87,6 +88,47 @@ namespace testTask.Controllers
 
             return Ok(postDTO);
             }
+
+            [HttpGet("Search")]
+            public async Task<ActionResult<IEnumerable<PostDTO>>> SearchPosts(string search = null)
+            {
+
+            var query = _context.Posts
+                                .Include(p => p.Comments)
+                                .Include(p => p.Author)
+                                .AsQueryable();
+
+            if (!string.IsNullOrEmpty(search))
+            {
+                query = query.Where(p => p.Author.Username.Contains(search) || p.Title.Contains(search));
+            }
+            else
+            {
+                return NoContent();
+            }
+
+            var posts = await query.ToListAsync();
+
+            var postDTOs = posts.Select(p => new PostDTO
+            {
+                Id = p.Id,
+                AuthorId = p.AuthorId,
+                authorName = p.Author.Username,
+                Comments = p.Comments.Select(c => new CommentDTO
+                {
+                    Id = c.Id,
+                    PostId = c.PostId,
+                    CommentContent = c.Text,
+                    UserId = c.UserId,
+                }).ToList(),
+                Content = p.Content,
+                Title = p.Title,
+                CreationDate = p.CreationDate,
+            }).ToList();
+
+            return Ok(postDTOs);
+
+        }
 
             [HttpPost("Create")]
             public   async Task<ActionResult<PostCreateDTO>> CreatePost(PostCreateDTO post)

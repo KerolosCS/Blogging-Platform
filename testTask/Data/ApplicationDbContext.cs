@@ -43,6 +43,8 @@ namespace testTask.Data
 
 
 
+
+            modelBuilder.Entity<Follower>().HasKey(m => new { m.FollowedId, m.FollowerId });
             modelBuilder.Entity<Follower>()
                 .HasOne(f => f.FollowerUser)
                 .WithMany(u => u.Followers)
@@ -54,6 +56,7 @@ namespace testTask.Data
                 .WithMany(u => u.Following)
                 .HasForeignKey(f => f.FollowedId)
                 .OnDelete(DeleteBehavior.Restrict);
+
 
             // Ensure unique email and username
             modelBuilder.Entity<User>()

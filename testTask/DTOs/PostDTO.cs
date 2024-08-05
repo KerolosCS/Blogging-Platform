@@ -1,4 +1,4 @@
-﻿namespace testTask.Models
+﻿namespace testTask.DTOs
 {
     public class PostDTO
     {
@@ -6,9 +6,9 @@
 
         public string Title { get; set; }
 
-        
+
         public int AuthorId { get; set; }
-        public  string authorName { get; set; }
+        public string authorName { get; set; }
 
 
         public string Content { get; set; }

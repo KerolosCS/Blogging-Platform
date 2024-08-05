@@ -12,8 +12,8 @@ using testTask.Data;
 namespace testTask.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240801144414_1")]
-    partial class _1
+    [Migration("20240805195229_First1")]
+    partial class First1
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -57,15 +57,15 @@ namespace testTask.Migrations
 
             modelBuilder.Entity("testTask.Models.Follower", b =>
                 {
-                    b.Property<int>("FollowerId")
-                        .HasColumnType("int");
-
                     b.Property<int>("FollowedId")
                         .HasColumnType("int");
 
-                    b.HasKey("FollowerId");
+                    b.Property<int>("FollowerId")
+                        .HasColumnType("int");
 
-                    b.HasIndex("FollowedId");
+                    b.HasKey("FollowedId", "FollowerId");
+
+                    b.HasIndex("FollowerId");
 
                     b.ToTable("Followers");
                 });

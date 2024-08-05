@@ -3,7 +3,7 @@
     public class Follower
     {
 
-        public int Id { get; set; }
+        //public int Id { get; set; }
 
 
 

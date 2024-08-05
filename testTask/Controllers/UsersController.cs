@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
 using testTask.Data;
+using testTask.DTOs;
 using testTask.Models;
 namespace testTask.Controllers
 {
@@ -42,36 +43,30 @@ namespace testTask.Controllers
              return CreatedAtAction(nameof(GetUser), new { id = user.Id }, user);
         }
 
-        [HttpGet("GetUser/{id}")] 
-        public  async Task<ActionResult<UserDTO>>GetUser(int id) 
+        [HttpGet("GetUser/{id}")]
+
+
+
+        public async Task<ActionResult<UserDTO>> GetUser(int id)
         {
-
             var user = await _context.Users
-                            .Include(u => u.Posts)
-                            .ThenInclude(p => p.Comments)
-                            .Include(u => u.Comments)
-                            .Include(u => u.Followers)
-                            .Include(u => u.Following)
-                            .SingleOrDefaultAsync(u => u.Id == id);
-
-
-
+                                        .Include(u => u.Posts)
+                                        .ThenInclude(p => p.Comments)
+                                        .Include(u => u.Comments)
+                                        .SingleOrDefaultAsync(u => u.Id == id);
 
             if (user == null)
             {
                 return NotFound();
             }
-            _logger.LogInformation($"My Log ---------------------------- >>> {user.Followers.ToList().Count()}");
-            if (user.Followers.ToList().Count()>0)
-            {
-            _logger.LogInformation($"My Log ---------------------------- user.Followers.ToList()[0].FollowerId >>> {user.Followers.ToList()[0].FollowerId}");
-            _logger.LogInformation($"My Log ---------------------------- user.Followers.ToList()[0].FollowerUser >>> {user.Followers.ToList()[0].FollowerUser}");
-            _logger.LogInformation($"My Log ---------------------------- user.Followers.ToList()[0].FollowedId >>> {user.Followers.ToList()[0].FollowedId}");
-            _logger.LogInformation($"My Log ---------------------------- user.Followers.ToList()[0].FollowedUser >>> {user.Followers.ToList()[0].FollowedUser}");
 
-            }
-            _logger.LogInformation($"My Log ---------------------------- >>> {user.Following.ToList().Count()}");
-            List<CommentDTO> commentDTOs = user.Comments.Select(co => new CommentDTO
+           
+            var allfollowers = await _context.Followers
+                .Include(f => f.FollowerUser)
+                .Include(f => f.FollowedUser)
+                .ToListAsync();
+
+            var commentDTOs = user.Comments.Select(co => new CommentDTO
             {
                 Id = co.Id,
                 PostId = co.PostId,
@@ -79,24 +74,15 @@ namespace testTask.Controllers
                 UserId = co.UserId,
             }).ToList();
 
-            List<FollowerDTO> followersDTOs = user.Followers.Select(f => new FollowerDTO
+            var allfollowersDTOs = allfollowers.Select(f => new FollowerDTO
             {
-                Id = f.Id,
-                FollowedId = f.FollowedId,
-                FollowerId = f.FollowerId,
+                FollowedId = f.FollowedUser.Id,
+                FollowerId = f.FollowerUser.Id,
             }).ToList();
 
-            List<FollowerDTO> followingDTOs = user.Following.Select(f => new FollowerDTO
-            {
-                Id = f.Id,
-                FollowedId = f.FollowedId,
-                FollowerId = f.FollowerId,
-            }).ToList();
-
-            List<PostDTO> postDTOs = user.Posts.Select(post => new PostDTO
+            var postDTOs = user.Posts.Select(post => new PostDTO
             {
                 Id = post.Id,
-                
                 authorName = user.Username,
                 AuthorId = user.Id,
                 Title = post.Title,
@@ -111,14 +97,14 @@ namespace testTask.Controllers
                 }).ToList(),
             }).ToList();
 
-            UserDTO userDTO = new UserDTO()
+            var userDTO = new UserDTO()
             {
                 Id = user.Id,
                 Username = user.Username,
                 Email = user.Email,
                 Comments = commentDTOs,
-                Following = followingDTOs.Where(f => f.FollowerId == user.Id).ToList(),
-                Followers = followersDTOs.Where(f => f.FollowedId == user.Id).ToList(),
+                Following = allfollowersDTOs.Where(f => f.FollowerId == user.Id).ToList(),
+                Followers = allfollowersDTOs.Where(f => f.FollowedId == user.Id).ToList(),
                 Posts = postDTOs,
             };
 
@@ -164,37 +150,29 @@ namespace testTask.Controllers
             return Ok("Updated");
         }
 
-        //[HttpDelete("{id}")]
-        //public IActionResult DeleteUser(int id)
-        //{
-        //    var user =  _context.Users.SingleOrDefault(u=> u.Id==id);
-        //    if (user == null)
-        //    {
-        //        return NotFound();
-        //    }
-
-        //    _context.Users.Remove(user);
-        //     _context.SaveChangesAsync();
-        //    return NoContent();
-        //}
 
         [HttpPost("{id}/follow")]
         public async Task<IActionResult> FollowUser(int id, int followId)
         {
-            if (id == followId)
+            var user = await _context.Users.FindAsync(id);
+            var followedUser = await _context.Users.FindAsync(followId);
+
+            if (user == null || followedUser == null)
             {
-                return BadRequest("Users cannot follow themselves.");
+                return NotFound("One or both users not found.");
             }
 
             var follower = new Follower
             {
-                FollowerId = id,  // Person Who will follow
-                FollowedId = followId  // person who will be followeddddd
+                FollowerId = id,  // Person who will follow
+                FollowedId = followId  // Person who will be followed
             };
 
             _context.Followers.Add(follower);
             await _context.SaveChangesAsync();
+
             return NoContent();
         }
+   
     }
 }

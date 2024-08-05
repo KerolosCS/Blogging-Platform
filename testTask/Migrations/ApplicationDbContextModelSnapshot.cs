@@ -54,21 +54,13 @@ namespace testTask.Migrations
 
             modelBuilder.Entity("testTask.Models.Follower", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
                     b.Property<int>("FollowedId")
                         .HasColumnType("int");
 
                     b.Property<int>("FollowerId")
                         .HasColumnType("int");
 
-                    b.HasKey("Id");
-
-                    b.HasIndex("FollowedId");
+                    b.HasKey("FollowedId", "FollowerId");
 
                     b.HasIndex("FollowerId");
 
