@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using testTask.Data;
 using testTask.DTOs;
@@ -8,6 +9,7 @@ namespace testTask.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class CommentController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
@@ -18,6 +20,11 @@ namespace testTask.Controllers
         }
 
         [HttpGet("GetComments")]
+
+
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        
         public ActionResult<IEnumerable<CommentDTO>> GetComments()
         {
             var comments = _context.Comments
@@ -41,6 +48,9 @@ namespace testTask.Controllers
         }
 
         [HttpGet("GetComment/{id}")]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public ActionResult<CommentDTO> GetComment(int id)
         {
             var comment = _context.Comments
@@ -69,6 +79,9 @@ namespace testTask.Controllers
         }
 
         [HttpPost("Create")]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+      
         public async Task< ActionResult<Comment>> CreateComment(CommentCreateDTO commentDto)
 
 
@@ -89,6 +102,9 @@ namespace testTask.Controllers
         }
 
         [HttpPut("Update/{id}")]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> UpdateComment(int id, CommentCreateDTO commentDto  , int userID)
         {
             if (id != commentDto.Id)
@@ -117,6 +133,9 @@ namespace testTask.Controllers
         }
 
         [HttpDelete("Delete/{id}")]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> DeleteComment(int id)
         {
             var comment = _context.Comments.Find(id);

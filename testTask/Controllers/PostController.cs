@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
 using System.ComponentModel.DataAnnotations;
@@ -11,7 +12,8 @@ namespace testTask.Controllers
 
     [ApiController]
         [Route("api/[controller]")]
-        public class PostController : ControllerBase
+    [Authorize]
+    public class PostController : ControllerBase
         {
             private readonly ApplicationDbContext _context;
 
@@ -57,11 +59,18 @@ namespace testTask.Controllers
             }
 
             [HttpGet("GetPost/{id}")]
-            public ActionResult<Post> GetPost(int id)
+
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+       
+        public async Task <ActionResult<Post>> GetPost(int id)
             {
-                var post = _context.Posts
-                    .Include(p => p.Comments).Include(P => P.Author)
-                    .SingleOrDefault(p => p.Id == id);
+
+
+                var post = await _context.Posts
+                    .Include(p => p.Comments).ThenInclude(c => c.User).Include(P => P.Author)
+                    .SingleOrDefaultAsync(p => p.Id == id);
 
                 if (post == null)
                 {
@@ -77,8 +86,8 @@ namespace testTask.Controllers
                     PostId = c.PostId,
                     CommentContent = c.Text,
                     UserId = c.UserId,
-                    CommenterEmail = c.User.Username,
-                    Name = c.User.Username,
+                    CommenterEmail = c.User?.Username,
+                    Name = c.User?.Username,
                     Created = c.CreationDate,
                 }).ToList();
             }
@@ -100,7 +109,12 @@ namespace testTask.Controllers
             }
 
             [HttpGet("Search")]
-            public async Task<ActionResult<IEnumerable<PostDTO>>> SearchPosts(string search = null)
+
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+       
+        public async Task<ActionResult<IEnumerable<PostDTO>>> SearchPosts(string search = null)
             {
 
             var query = _context.Posts
@@ -141,7 +155,9 @@ namespace testTask.Controllers
         }
 
             [HttpPost("Create")]
-            public   async Task<ActionResult<PostCreateDTO>> CreatePost(PostCreateDTO post)
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        public   async Task<ActionResult<PostCreateDTO>> CreatePost(PostCreateDTO post)
             {
             Post p = new Post() {
             
@@ -160,7 +176,13 @@ namespace testTask.Controllers
             }
 
             [HttpPut("Update/{id}")]
-            public async Task<IActionResult> UpdatePost(int id, PostCreateDTO postCreateDTO ,[Required] int userID)
+      
+
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+
+        public async Task<IActionResult> UpdatePost(int id, PostCreateDTO postCreateDTO ,[Required] int userID)
             {
             var postUpdate = _context.Posts.AsNoTracking()
                     .Include(p => p.Comments).Include(P => P.Author)
@@ -202,7 +224,10 @@ namespace testTask.Controllers
 
                 return NoContent();
             }
-        }
+        
+    
+    
+    }
 
     }
 
