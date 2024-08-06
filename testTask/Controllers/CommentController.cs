@@ -81,11 +81,18 @@ namespace testTask.Controllers
         [HttpPost("Create")]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status201Created)]
-      
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task< ActionResult<Comment>> CreateComment(CommentCreateDTO commentDto)
 
 
         {
+
+
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
             Comment comment =  new Comment()
             {
                 Id = commentDto.Id,
@@ -107,6 +114,10 @@ namespace testTask.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> UpdateComment(int id, CommentCreateDTO commentDto  , int userID)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
             if (id != commentDto.Id)
             {
                 return BadRequest();

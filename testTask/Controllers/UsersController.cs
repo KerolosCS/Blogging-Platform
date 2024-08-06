@@ -68,11 +68,16 @@ namespace testTask.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreateUser(UserCreate userCreate)
         {
+
+
+            
             if (_context.Users.FirstOrDefault(u => u.Email == userCreate.Email) != null || _context.Users.FirstOrDefault(u => u.Username == userCreate.Username) != null)
             {
                 Log.Information("User try to create acount with used name or email");
                 return BadRequest("Email or Username already exists.");
             }
+          
+
 
             User user = new User()
             {
