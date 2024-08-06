@@ -45,26 +45,40 @@ namespace testTask.Controllers
 
         [HttpGet("GetUser/{id}")]
 
-
-
         public async Task<ActionResult<UserDTO>> GetUser(int id)
         {
             var user = await _context.Users
                                         .Include(u => u.Posts)
                                         .ThenInclude(p => p.Comments)
-                                        .Include(u => u.Comments)
+                                        .Include(u => u.Comments)   
+                                        
                                         .SingleOrDefaultAsync(u => u.Id == id);
+           
+           
 
             if (user == null)
             {
                 return NotFound();
             }
+            // Get the IDs of users that the current user is following
+            var followedUserIds = await _context.Followers
+        .Where(f => f.FollowerId == id)
+        .Select(f => f.FollowedId)
+        .ToListAsync();
 
-           
+            // Retrieve posts from followed users
+            var followedUserPosts = await _context.Posts
+                .Where(p => followedUserIds.Contains(p.AuthorId))
+                .Include(p => p.Comments)
+                .Include(p => p.Author) // Assuming you have a navigation property for Author
+                .ToListAsync();
+
             var allfollowers = await _context.Followers
                 .Include(f => f.FollowerUser)
                 .Include(f => f.FollowedUser)
                 .ToListAsync();
+        
+            ;
 
             var commentDTOs = user.Comments.Select(co => new CommentDTO
             {
@@ -78,7 +92,40 @@ namespace testTask.Controllers
             {
                 FollowedId = f.FollowedUser.Id,
                 FollowerId = f.FollowerUser.Id,
+                Posts = followedUserPosts.Select(p=> new PostDTO {
+                Id = p.Id,
+                Title = p.Title,
+                Content = p.Content,
+                AuthorId = p.AuthorId,
+                authorName = p.Author.Username,
+                Comments = p.Comments.Select(c => new CommentDTO
+                {
+                    Id = c.Id,
+                    PostId = c.PostId,
+                    CommentContent = c.Text,
+                    UserId = c.UserId,
+                }).ToList(),
+                
+                }).ToList(),
+
             }).ToList();
+            //var flwrs = user.Followers.Select(f => new FollowerDTO
+            //{
+            //    FollowedId = f.FollowedUser.Id,
+            //    FollowerId = f.FollowerUser.Id,
+                
+
+                
+            //}).ToList();
+            //var flwng = user.Following.Select(f => new FollowerDTO
+            //{
+            //    FollowedId = f.FollowedUser.Id,
+            //    FollowerId = f.FollowerUser.Id,
+                
+                
+
+                
+            //}).ToList();
 
             var postDTOs = user.Posts.Select(post => new PostDTO
             {
@@ -105,8 +152,14 @@ namespace testTask.Controllers
                 Comments = commentDTOs,
                 Following = allfollowersDTOs.Where(f => f.FollowerId == user.Id).ToList(),
                 Followers = allfollowersDTOs.Where(f => f.FollowedId == user.Id).ToList(),
+
+                //Following = flwng,
+                //Followers = flwrs ,
                 Posts = postDTOs,
             };
+
+
+
 
             return Ok(userDTO);
         }

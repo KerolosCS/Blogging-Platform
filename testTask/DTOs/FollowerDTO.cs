@@ -3,9 +3,13 @@
     public class FollowerDTO
     {
 
-        public int Id { get; set; }
+       
         public int FollowerId { get; set; }
 
         public int FollowedId { get; set; }
+
+       public ICollection<PostDTO>? Posts { get; set; }
+
+
     }
 }
