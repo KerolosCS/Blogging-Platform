@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
+using Serilog;
 using testTask.Data;
 using testTask.DTOs;
 using testTask.Models;
@@ -28,6 +29,7 @@ namespace testTask.Controllers
         {
             if (_context.Users.FirstOrDefault(u => u.Email == userCreate.Email) != null || _context.Users.FirstOrDefault(u => u.Username == userCreate.Username) != null)
             {
+                Log.Information("User try to create acount with used name or email");
                 return BadRequest("Email or Username already exists.");
             }
 
@@ -139,8 +141,7 @@ namespace testTask.Controllers
                 Following = allfollowersDTOs.Where(f => f.FollowerId == user.Id).ToList(),
                 Followers = allfollowersDTOs.Where(f => f.FollowedId == user.Id).ToList(),
 
-                //Following = flwng,
-                //Followers = flwrs ,
+
                 Posts = postDTOs,
             };
 
@@ -196,7 +197,7 @@ namespace testTask.Controllers
             var user = await _context.Users.FindAsync(id);
             var followedUser = await _context.Users.FindAsync(followId);
 
-            if (user == null || followedUser == null)
+            if (user == null || followedUser == null || id == user.Id)
             {
                 return NotFound("One or both users not found.");
             }

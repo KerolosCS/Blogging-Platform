@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
+using System.ComponentModel.DataAnnotations;
 using testTask.Data;
 using testTask.DTOs;
 using testTask.Models;
@@ -20,11 +21,14 @@ namespace testTask.Controllers
             }
 
             [HttpGet("GetPosts")]
-            public ActionResult<IEnumerable<PostDTO>> GetPosts()
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public ActionResult<IEnumerable<PostDTO>> GetPosts()
             {
 
+           
                 
-             var posts = _context.Posts.Include(p => p.Comments).Include(p => p.Author);
+             var posts = _context.Posts.Include(p => p.Comments).Include(p => p.Author).OrderByDescending(p=>p.CreationDate );
 
             List<PostDTO> postDTOs = posts.Select(p => new PostDTO
             {
@@ -156,14 +160,14 @@ namespace testTask.Controllers
             }
 
             [HttpPut("Update/{id}")]
-            public async Task<IActionResult> UpdatePost(int id, PostCreateDTO postCreateDTO)
+            public async Task<IActionResult> UpdatePost(int id, PostCreateDTO postCreateDTO ,[Required] int userID)
             {
             var postUpdate = _context.Posts.AsNoTracking()
                     .Include(p => p.Comments).Include(P => P.Author)
                     .SingleOrDefault(p => p.Id == id);
-            if (id != postCreateDTO.Id)
+            if (id != postCreateDTO.Id || postCreateDTO.Id != userID)
                 {
-                    return BadRequest();
+                    return BadRequest("users can only modify their own posts");
                 }
 
             Post post = new Post() { 

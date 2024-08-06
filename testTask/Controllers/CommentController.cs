@@ -47,6 +47,11 @@ namespace testTask.Controllers
                 .Include(c => c.User)
                 .Include(c => c.Post)
                 .SingleOrDefault(c => c.Id == id);
+            if (comment == null)
+            {
+                return NotFound();
+            }
+
 
             CommentDTO commentDTO = new CommentDTO()
             {
@@ -59,16 +64,12 @@ namespace testTask.Controllers
                 Created = comment.CreationDate,
             };
 
-            if (comment == null)
-            {
-                return NotFound();
-            }
-
+            
             return Ok(commentDTO);
         }
 
         [HttpPost("Create")]
-        public async Task< ActionResult<Comment>> CreateComment(CommentDTO commentDto)
+        public async Task< ActionResult<Comment>> CreateComment(CommentCreateDTO commentDto)
 
 
         {
@@ -88,11 +89,15 @@ namespace testTask.Controllers
         }
 
         [HttpPut("Update/{id}")]
-        public async Task<IActionResult> UpdateComment(int id, CommentDTO commentDto)
+        public async Task<IActionResult> UpdateComment(int id, CommentCreateDTO commentDto  , int userID)
         {
             if (id != commentDto.Id)
             {
                 return BadRequest();
+            }
+            if (userID != commentDto.UserId)
+            {
+                return BadRequest("You Can only edit your comment");
             }
             Comment comment = new Comment()
             {

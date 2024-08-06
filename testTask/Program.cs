@@ -1,9 +1,13 @@
 
 using Microsoft.EntityFrameworkCore;
+using Serilog;
 using System.Text.Json.Serialization;
 using testTask.Data;
+using testTask.Models;
 
 var builder = WebApplication.CreateBuilder(args);
+
+
 
 // Add services to the container.
 // Add services to the container.
@@ -12,6 +16,8 @@ var builder = WebApplication.CreateBuilder(args);
 //    options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
 
 //});
+Log.Logger = new LoggerConfiguration().
+    MinimumLevel.Debug().WriteTo.File("logs/logging.txt", rollingInterval: RollingInterval.Day).CreateLogger();
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
