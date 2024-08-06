@@ -6,6 +6,13 @@
 
         public int PostId { get; set; }
         public int UserId { get; set; }
+
+        public string Name { get; set; }
+
+        public string CommenterEmail { get; set; }
         public string CommentContent { get; set; }
+
+
+        public DateTime Created { get; set; }
     }
 }

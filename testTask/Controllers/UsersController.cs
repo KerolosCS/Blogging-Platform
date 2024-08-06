@@ -50,8 +50,7 @@ namespace testTask.Controllers
             var user = await _context.Users
                                         .Include(u => u.Posts)
                                         .ThenInclude(p => p.Comments)
-                                        .Include(u => u.Comments)   
-                                        
+                                        .Include(u => u.Comments)
                                         .SingleOrDefaultAsync(u => u.Id == id);
            
            
@@ -60,17 +59,17 @@ namespace testTask.Controllers
             {
                 return NotFound();
             }
-            // Get the IDs of users that the current user is following
+            
             var followedUserIds = await _context.Followers
         .Where(f => f.FollowerId == id)
         .Select(f => f.FollowedId)
         .ToListAsync();
 
-            // Retrieve posts from followed users
+           
             var followedUserPosts = await _context.Posts
                 .Where(p => followedUserIds.Contains(p.AuthorId))
                 .Include(p => p.Comments)
-                .Include(p => p.Author) // Assuming you have a navigation property for Author
+                .Include(p => p.Author) 
                 .ToListAsync();
 
             var allfollowers = await _context.Followers
@@ -104,29 +103,16 @@ namespace testTask.Controllers
                     PostId = c.PostId,
                     CommentContent = c.Text,
                     UserId = c.UserId,
+                    CommenterEmail = c.User.Username,
+                    Name = c.User.Username,
+                    Created = c.CreationDate,
+
                 }).ToList(),
                 
                 }).ToList(),
 
             }).ToList();
-            //var flwrs = user.Followers.Select(f => new FollowerDTO
-            //{
-            //    FollowedId = f.FollowedUser.Id,
-            //    FollowerId = f.FollowerUser.Id,
-                
-
-                
-            //}).ToList();
-            //var flwng = user.Following.Select(f => new FollowerDTO
-            //{
-            //    FollowedId = f.FollowedUser.Id,
-            //    FollowerId = f.FollowerUser.Id,
-                
-                
-
-                
-            //}).ToList();
-
+          
             var postDTOs = user.Posts.Select(post => new PostDTO
             {
                 Id = post.Id,

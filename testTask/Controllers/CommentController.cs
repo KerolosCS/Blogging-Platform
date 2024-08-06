@@ -29,6 +29,9 @@ namespace testTask.Controllers
             CommentContent = c.Text,
             PostId = c.PostId,
             UserId  = c.UserId,
+            CommenterEmail = c.User.Username,
+            Name = c.User.Username,
+            Created = c.CreationDate,
             
             }).ToList();
 
@@ -51,6 +54,9 @@ namespace testTask.Controllers
                 CommentContent = comment.Text,
                 PostId = comment.PostId,
                 Id = comment.Id,
+                CommenterEmail = comment.User.Username,
+                Name = comment.User.Username,
+                Created = comment.CreationDate,
             };
 
             if (comment == null)
@@ -73,8 +79,7 @@ namespace testTask.Controllers
                 UserId= commentDto.UserId,
                 Text = commentDto.CommentContent,
                 CreationDate = DateTime.Now,
-
-
+               
             };
             _context.Comments.Add(comment);
            await _context.SaveChangesAsync();

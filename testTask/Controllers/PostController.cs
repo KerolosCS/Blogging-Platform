@@ -37,6 +37,9 @@ namespace testTask.Controllers
                     PostId = c.PostId,
                     CommentContent = c.Text,
                     UserId = c.UserId,
+                    CommenterEmail = c.User.Username,
+                    Name = c.User.Username,
+                    Created = c.CreationDate,
                 }).ToList(),
                 Content=p.Content,
                 Title=p.Title,
@@ -70,6 +73,9 @@ namespace testTask.Controllers
                     PostId = c.PostId,
                     CommentContent = c.Text,
                     UserId = c.UserId,
+                    CommenterEmail = c.User.Username,
+                    Name = c.User.Username,
+                    Created = c.CreationDate,
                 }).ToList();
             }
 
