@@ -40,9 +40,14 @@ namespace testTask.Controllers
 
         public async Task<IActionResult> Login(LoginRequestDTO loginRequest)
         {
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
             var user = _context.Users
                 .FirstOrDefault(u => u.Email.ToLower() == loginRequest.Email.ToLower());
-            bool isValid = user.Password == loginRequest.Password ? true : false;
+            bool isValid = user?.Password == loginRequest?.Password ? true : false;
 
             if (user == null || isValid == false)
             {
