@@ -114,6 +114,8 @@ namespace testTask.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> UpdateComment(int id, CommentCreateDTO commentDto  , int userID)
         {
+            var c = _context.Comments.Where(com => com.Id == id).FirstOrDefault();
+
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
@@ -122,7 +124,7 @@ namespace testTask.Controllers
             {
                 return BadRequest();
             }
-            if (userID != commentDto.UserId)
+            if (userID != commentDto.UserId || c.UserId!= userID)
             {
                 return BadRequest("You Can only edit your comment");
             }
